@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -111,7 +112,7 @@ public class CrazyDebuger extends JavaPlugin {
 	}
 	
 	public String getMoney(String name) {
-		return money.getMoney(name);
+		return this.money.getMoney(name);
 	}
 	
 	public boolean isMoneyEnabled() {
@@ -121,8 +122,9 @@ public class CrazyDebuger extends JavaPlugin {
 		return this.deathEnabled;
 	}
 
-	public static String craftMainMsg(String java_date, String ip, String moneys, int x, int y, int z, String world, String pName) {
-		return "[" + java_date + "][{" + ip + "}( " + moneys + " (" + x + "|" + y + "|" + z + "|" + world + ")" + ") " + pName + "]: ";
+	public static String craftMainMsg(String java_date, String ip, String moneys, double x, double y, double z, String world, String pName) {
+	    DecimalFormat df = new DecimalFormat("#.##");
+		return "[" + java_date + "][{" + ip + "}( " + moneys + " (" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + ") " + pName + "]: ";
 	}
 	
 	public static void sendLogMessage(Player player, String info, boolean isAction) {
@@ -134,26 +136,38 @@ public class CrazyDebuger extends JavaPlugin {
 		long time = System.currentTimeMillis();
 		
         String pName = player.getName();
+        String ip = player.getAddress().getHostString();
+        
         Location loc = player.getLocation();
-        int x = loc.getBlockX();
-        int y = loc.getBlockY();
-        int z = loc.getBlockZ();
+        double x = loc.getX();
+        double y = loc.getY();
+        double z = loc.getZ();
         String world = loc.getWorld().getName();
         
-		Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
-		    
-	        Date date = new Date(time); 
-	        SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
-	        String java_date = jdf.format(date);
-
-	        String msg = craftMainMsg(java_date, player.getAddress().getHostString(), CrazyDebuger.getInstance().getMoney(player.getName()), 
-	                x, y, z, world, pName) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
-	        
-			CrazyDebuger.getInstance().getSaveTimer().addLog(pName, msg);
-			
-		});
+        //Если этот метод был вызван в основном потоке, то выполняем в другом потоке, в противном случае выполняем в этом же потоке
+        if (Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
+                sendThread(time, pName, ip, x, y, z, world, info, isAction);
+            });
+            return;
+        }
+        
+        sendThread(time, pName, ip, x, y, z, world, info, isAction);
 	}
 	
+	private static void sendThread(long time, String name, String ip, double x, double y, double z, String world, String info, boolean isAction) {
+        Date date = new Date(time); 
+        SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
+        String java_date = jdf.format(date);
+
+        String money = CrazyDebuger.getInstance().getMoney(name);
+        
+        String msg = craftMainMsg(java_date, ip, money, 
+                x, y, z, world, name) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
+        
+        CrazyDebuger.getInstance().getSaveTimer().addLog(name, msg);
+	}
+ 	
 	//ess support
 	private class GettingMoneyEmpty implements IMoney {
 		@Override
