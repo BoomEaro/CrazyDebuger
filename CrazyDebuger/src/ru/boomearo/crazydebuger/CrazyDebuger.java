@@ -131,20 +131,24 @@ public class CrazyDebuger extends JavaPlugin {
 			cd.getLogger().severe("Предотвращена попытка отправки в лог сообщения. Плагин не готов!");
 			return;
 		}
+		long time = System.currentTimeMillis();
+		
+        String pName = player.getName();
+        Location loc = player.getLocation();
+        int x = loc.getBlockX();
+        int y = loc.getBlockY();
+        int z = loc.getBlockZ();
+        String world = loc.getWorld().getName();
+        
 		Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
-			String pName = player.getName();
-			Location loc = player.getLocation();
-			int x = loc.getBlockX();
-			int y = loc.getBlockY();
-			int z = loc.getBlockZ();
-			String world = loc.getWorld().getName();
-			Date date = new Date(System.currentTimeMillis()); 
-			SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
-			String java_date = jdf.format(date);
-			
-			String msg = craftMainMsg(java_date, player.getAddress().getHostString(), CrazyDebuger.getInstance().getMoney(player.getName()), 
-					x, y, z, world, pName) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
-			
+		    
+	        Date date = new Date(time); 
+	        SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
+	        String java_date = jdf.format(date);
+
+	        String msg = craftMainMsg(java_date, player.getAddress().getHostString(), CrazyDebuger.getInstance().getMoney(player.getName()), 
+	                x, y, z, world, pName) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
+	        
 			CrazyDebuger.getInstance().getSaveTimer().addLog(pName, msg);
 			
 		});
