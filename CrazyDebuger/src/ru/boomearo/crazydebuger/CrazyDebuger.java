@@ -30,9 +30,9 @@ public class CrazyDebuger extends JavaPlugin {
 	private SaveTimer timer = null;
 	private ZipRunner ziper = null;
 	
-	private boolean moneyEnabled = true;
-	private boolean deathEnabled = true;
-	private boolean runArchiveCheckTimer = true;
+	private volatile boolean moneyEnabled = true;
+	private volatile boolean deathEnabled = true;
+	private volatile boolean runArchiveCheckTimer = true;
 	
 	private volatile boolean isReady = false;
 	

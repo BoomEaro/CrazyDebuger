@@ -34,40 +34,31 @@ public class SaveTimer extends AbstractTimer {
                 return;
             }
             
+            //Получаем полную копию того что мы должны записать на диск.
+            //Для этого синхронизируемся, делаем полное копирование, затем удаляем.
+            //После чего доступ на запись будет разблокирована что увеличит пропускную способность
+            Map<String, List<String>> tmpLog;
+            List<String> tmpMainLog;
             synchronized (this.lock) {
-                if (!this.log.isEmpty()) {
-                    for (Entry<String, List<String>> entry : this.log.entrySet()) {
-                        File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/players/latest/" + entry.getKey() + ".log");
-                        file.getParentFile().mkdirs();
-                        FileWriter writer;
-                        try {
-                            writer = new FileWriter(file, true);
-                            BufferedWriter bufferWriter = new BufferedWriter(writer);
-
-                            for (String ms : entry.getValue()) {
-                                try {
-                                    bufferWriter.write(ms);
-                                }
-                                catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            bufferWriter.close();
-                        } 
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    this.log.clear();
-                }
-                if (!this.mainLog.isEmpty()) {
-                    File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/general/latest.log");
+                tmpLog = new HashMap<String, List<String>>(this.log);
+                this.log.clear();
+                
+                tmpMainLog = new ArrayList<String>(this.mainLog);
+                this.mainLog.clear();
+            }
+            
+            //Далее работаем с локальной копией. Все что в этой копии - должно быть записано и этого нет в общих коллекциях.
+            
+            if (!tmpLog.isEmpty()) {
+                for (Entry<String, List<String>> entry : tmpLog.entrySet()) {
+                    File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/players/latest/" + entry.getKey() + ".log");
                     file.getParentFile().mkdirs();
                     FileWriter writer;
                     try {
                         writer = new FileWriter(file, true);
                         BufferedWriter bufferWriter = new BufferedWriter(writer);
-                        for (String ms : this.mainLog) {
+
+                        for (String ms : entry.getValue()) {
                             try {
                                 bufferWriter.write(ms);
                             }
@@ -80,9 +71,28 @@ public class SaveTimer extends AbstractTimer {
                     catch (Exception e) {
                         e.printStackTrace();
                     }
-                    this.mainLog.clear();
                 }
-
+            }
+            if (!tmpMainLog.isEmpty()) {
+                File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/general/latest.log");
+                file.getParentFile().mkdirs();
+                FileWriter writer;
+                try {
+                    writer = new FileWriter(file, true);
+                    BufferedWriter bufferWriter = new BufferedWriter(writer);
+                    for (String ms : tmpMainLog) {
+                        try {
+                            bufferWriter.write(ms);
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    bufferWriter.close();
+                } 
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         catch (Exception e) {
