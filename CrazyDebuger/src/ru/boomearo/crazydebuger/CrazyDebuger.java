@@ -18,7 +18,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.earth2me.essentials.Essentials;
 import com.earth2me.essentials.utils.NumberUtil;
 
-import ru.boomearo.crazydebuger.listeners.AuthMeListener;
 import ru.boomearo.crazydebuger.listeners.DeathListener;
 import ru.boomearo.crazydebuger.listeners.MainListener;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
@@ -33,7 +32,6 @@ public class CrazyDebuger extends JavaPlugin {
 	
 	private boolean moneyEnabled = true;
 	private boolean deathEnabled = true;
-	private boolean authmeEnabled = true;
 	private boolean runArchiveCheckTimer = true;
 	
 	private volatile boolean isReady = false;
@@ -70,16 +68,12 @@ public class CrazyDebuger extends JavaPlugin {
 	    if (this.deathEnabled) {
 		    getServer().getPluginManager().registerEvents(new DeathListener(), this);
 	    }
-	    if ((Bukkit.getPluginManager().getPlugin("AuthMe") != null) && this.authmeEnabled) {
-	    	getServer().getPluginManager().registerEvents(new AuthMeListener(), this);
-	    }
-	    
+
 		getLogger().info("Плагин успешно включен.");
 		
 	}
 	public void onDisable() {
-		while (SaveTimer.isSaveProgress());
-		SaveTimer.save();
+		this.timer.save();
 		
 		getLogger().info("Плагин успешно выключен.");
 	}
@@ -92,7 +86,6 @@ public class CrazyDebuger extends JavaPlugin {
 	public void loadConfig() {
 		this.moneyEnabled = getConfig().getBoolean("Configuration.moneyEnabled");
 		this.deathEnabled = getConfig().getBoolean("Configuration.deathEnabled");
-		this.authmeEnabled = getConfig().getBoolean("Configuration.authmeEnabled");
 		this.runArchiveCheckTimer = getConfig().getBoolean("Configuration.runArchiveCheckTimer");
 		
 		this.lastZip = getConfig().getLong("LastZip");
@@ -118,11 +111,7 @@ public class CrazyDebuger extends JavaPlugin {
 	public boolean isDeathEnabled() {
 		return this.deathEnabled;
 	}
-	public boolean isAuthMeEnabled() {
-		return this.authmeEnabled;
-	}
-	
-    
+
 	public static String craftMainMsg(String java_date, String ip, String moneys, int x, int y, int z, String world, String pName) {
 		return "[" + java_date + "][{" + ip + "}( " + moneys + " (" + x + "|" + y + "|" + z + "|" + world + ")" + ") " + pName + "]: ";
 	}
@@ -147,18 +136,9 @@ public class CrazyDebuger extends JavaPlugin {
 			String msg = craftMainMsg(java_date, player.getAddress().getHostString(), CrazyDebuger.getInstance().getMoney(player.getName()), 
 					x, y, z, world, pName) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
 			
-			send(pName, msg);
+			CrazyDebuger.getInstance().getSaveTimer().addLog(pName, msg);
 			
 		});
-	}
-	
-	private static void send(String player, String msg) {
-		//Поток добавляющий запись в коллкцию должен подождать неопределнное время если идет сохранение.
-		while (SaveTimer.isSaveProgress());
-		
-		SaveTimer.addPlayerLog(player, msg);
-		SaveTimer.addMainLog(msg);
-		
 	}
 	
 	//ess support
@@ -169,8 +149,7 @@ public class CrazyDebuger extends JavaPlugin {
 		}
 
 	}
-	ggggggg
-	//TODO исправить синхранизацию в SaveTimer
+
 	public void checkOutdateFiles() { 
 		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
 			this.isReady = false;
@@ -292,20 +271,22 @@ public class CrazyDebuger extends JavaPlugin {
 		}
 	}
 	
-	private class GettingMoneyLegal implements IMoney {
+	private static class GettingMoneyLegal implements IMoney {
 		private Essentials ess;
+		
 		public GettingMoneyLegal(Plugin pl) {
 			this.ess = (Essentials) pl;
 		}
+		
 		@Override
 		public String getMoney(String user) {
-			BigDecimal bd = ess.getUser(user).getMoney();
-			return NumberUtil.displayCurrency(bd, ess);
+			BigDecimal bd = this.ess.getUser(user).getMoney();
+			return NumberUtil.displayCurrency(bd, this.ess);
 		}
 
 	}
 	
-	private interface IMoney {
+	private static interface IMoney {
 
 		public String getMoney(String user);
 		
