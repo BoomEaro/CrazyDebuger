@@ -1,0 +1,8 @@
+Configuration:
+   moneyEnabled: true
+   deathEnabled: true
+   authmeEnabled: true
+   runArchiveCheckTimer: true
+   
+   
+LastZip: 0

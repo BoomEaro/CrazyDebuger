@@ -1,0 +1,7 @@
+name: CrazyDebuger
+main: ru.boomearo.crazydebuger.CrazyDebuger
+version: 0.8.1
+api-version: 1.13
+author: BoomEaro
+softdepend: [Essentials, AuthMe]
+description: Debuger
