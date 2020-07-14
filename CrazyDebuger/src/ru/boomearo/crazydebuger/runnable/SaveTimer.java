@@ -8,36 +8,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.bukkit.scheduler.BukkitRunnable;
+import java.util.concurrent.TimeUnit;
 
 import ru.boomearo.crazydebuger.CrazyDebuger;
 
-public class SaveTimer extends BukkitRunnable {
+public class SaveTimer extends AbstractTimer {
 
-    private Map<String, List<String>> log = new HashMap<String, List<String>>();
-    private List<String> mainLog = new ArrayList<String>();
+    private final Map<String, List<String>> log = new HashMap<String, List<String>>();
+    private final List<String> mainLog = new ArrayList<String>();
 
     private final Object lock = new Object();
 
     public SaveTimer(CrazyDebuger plugin) {
-        runnable();
-    }
-
-    public void runnable() {
-        this.runTaskTimerAsynchronously(CrazyDebuger.getInstance(), 20*5, 20*5);
+        super("SaveTimer", TimeUnit.SECONDS, 5);
     }
 
     @Override
-    public void run() {
+    public void task() {
         save();
     }
 
     public void save() {
-        if (!CrazyDebuger.getInstance().isReady()) {
-            return;
-        }
         try {
+            if (!CrazyDebuger.getInstance().isReady()) {
+                return;
+            }
+            
             synchronized (this.lock) {
                 if (!this.log.isEmpty()) {
                     for (Entry<String, List<String>> entry : this.log.entrySet()) {

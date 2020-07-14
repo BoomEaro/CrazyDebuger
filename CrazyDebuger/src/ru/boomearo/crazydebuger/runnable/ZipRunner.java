@@ -1,26 +1,23 @@
 package ru.boomearo.crazydebuger.runnable;
 
-import org.bukkit.scheduler.BukkitRunnable;
+import java.util.concurrent.TimeUnit;
 
 import ru.boomearo.crazydebuger.CrazyDebuger;
 
-public class ZipRunner extends BukkitRunnable {
-
-	private CrazyDebuger plugin;
+public class ZipRunner extends AbstractTimer {
 	
-	public ZipRunner(CrazyDebuger plugin) {
-		this.plugin = plugin;
-		runnable();
-	}
-	
-	public void runnable() {
-		//Каждые 12 часов делаем чекалку
-		this.runTaskTimerAsynchronously(CrazyDebuger.getInstance(), 20*43200, 20*43200);
+	public ZipRunner() {
+		super("ZipRunner", TimeUnit.HOURS, 12);
 	}
 	
 	@Override
-	public void run() {
-		this.plugin.checkOutdateFiles();
+	public void task() {
+		try {
+		    CrazyDebuger.getInstance().checkOutdateFiles();
+		}
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
 	}
 
 }

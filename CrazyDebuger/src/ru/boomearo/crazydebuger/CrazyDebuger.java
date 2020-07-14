@@ -56,10 +56,14 @@ public class CrazyDebuger extends JavaPlugin {
 	    
 		if (this.timer == null) {
 			this.timer = new SaveTimer(this);
+			this.timer.setPriority(3);
+			this.timer.start();
 		}
 		if (this.runArchiveCheckTimer) {
 			if (this.ziper == null) {
-				this.ziper = new ZipRunner(this);
+				this.ziper = new ZipRunner();
+				this.ziper.setPriority(3);
+				this.ziper.start();
 			}
 		}
 		
@@ -73,7 +77,12 @@ public class CrazyDebuger extends JavaPlugin {
 		
 	}
 	public void onDisable() {
+	    //Сохраняем оставшиеся задачи
 		this.timer.save();
+		
+		//Завершаем таймеры
+		this.timer.interrupt();
+		this.ziper.interrupt();
 		
 		getLogger().info("Плагин успешно выключен.");
 	}
@@ -151,81 +160,79 @@ public class CrazyDebuger extends JavaPlugin {
 	}
 
 	public void checkOutdateFiles() { 
-		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-			this.isReady = false;
-			
-			if (this.lastZip == null) {
-				this.isReady = true;
-				return;
-			}
-			
-			//Каждый месяц будет работать архивирование в фоне.
-			if (((System.currentTimeMillis() - this.lastZip) / 1000) <= 2419200) {
-				this.isReady = true;
-				return;
-			}
+        this.isReady = false;
+        
+        if (this.lastZip == null) {
+            this.isReady = true;
+            return;
+        }
+        
+        //Каждый месяц будет работать архивирование в фоне.
+        if (((System.currentTimeMillis() - this.lastZip) / 1000) <= 2419200) {
+            this.isReady = true;
+            return;
+        }
 
-			this.getLogger().info("Начинаю архивирование всех логов в фоне.. ");
-			
-			long start = System.currentTimeMillis();
-			
-			this.getConfig().set("LastZip", start);
-			this.lastZip = start;
-			
-			this.saveConfig();
-			
-			Date date = new Date(System.currentTimeMillis()); 
-			SimpleDateFormat jdf = new SimpleDateFormat("HH-mm-ss   dd.MM.yyyy");
-			String java_date = jdf.format(date);
-			
-			
-			File plSource = new File(getDataFolder() + "/players/latest/");
-			plSource.getParentFile().mkdirs();
-			File plNew = new File(getDataFolder() + "/players/old/players-" + java_date + ".zip");
-			plNew.getParentFile().mkdirs();
-			
-			File[] files = plSource.listFiles();
-			
-			if (files != null) {
-				if (files.length > 0) {
-					try {
-						Ziping.zipDir(plSource, plNew);
-					} 
-					catch (Exception e) {
-						e.printStackTrace();
-					}
-					
-			        for (File f : files) {
-			        	if (f.isFile()) {
-			                f.delete();
-			        	}
-			        }
-				}
-			}
-			
-			this.getLogger().info("Архивирование отдельных игроков завершено.");
-			
-			File mainSource = new File(getDataFolder() + "/general/latest.log");
-			mainSource.getParentFile().mkdirs();
-			File mainNew = new File(getDataFolder() + "/general/old/general-" + java_date + ".zip");
-			mainNew.getParentFile().mkdirs();
-			
-			if (mainSource.exists()) {
-				Ziping.zipFile(mainSource, mainNew);
-				
-				mainSource.delete();
-			}
-			
-			this.getLogger().info("Архивирование главного лога завершено.");
-			long end = System.currentTimeMillis();
-			
-			this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
-			
-			this.isReady = true;
-		});
+        this.getLogger().info("Начинаю архивирование всех логов в фоне.. ");
+        
+        long start = System.currentTimeMillis();
+        
+        this.getConfig().set("LastZip", start);
+        this.lastZip = start;
+        
+        this.saveConfig();
+        
+        Date date = new Date(System.currentTimeMillis()); 
+        SimpleDateFormat jdf = new SimpleDateFormat("HH-mm-ss   dd.MM.yyyy");
+        String java_date = jdf.format(date);
+        
+        
+        File plSource = new File(getDataFolder() + "/players/latest/");
+        plSource.getParentFile().mkdirs();
+        File plNew = new File(getDataFolder() + "/players/old/players-" + java_date + ".zip");
+        plNew.getParentFile().mkdirs();
+        
+        File[] files = plSource.listFiles();
+        
+        if (files != null) {
+            if (files.length > 0) {
+                try {
+                    Ziping.zipDir(plSource, plNew);
+                } 
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                
+                for (File f : files) {
+                    if (f.isFile()) {
+                        f.delete();
+                    }
+                }
+            }
+        }
+        
+        this.getLogger().info("Архивирование отдельных игроков завершено.");
+        
+        File mainSource = new File(getDataFolder() + "/general/latest.log");
+        mainSource.getParentFile().mkdirs();
+        File mainNew = new File(getDataFolder() + "/general/old/general-" + java_date + ".zip");
+        mainNew.getParentFile().mkdirs();
+        
+        if (mainSource.exists()) {
+            Ziping.zipFile(mainSource, mainNew);
+            
+            mainSource.delete();
+        }
+        
+        this.getLogger().info("Архивирование главного лога завершено.");
+        long end = System.currentTimeMillis();
+        
+        this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
+        
+        this.isReady = true;
 	}
 	
-	public void checkOldDir() {
+	private void checkOldDir() {
 		File plSource = new File(getDataFolder() + "/players/latest/");
 		File mainOldSource = new File(getDataFolder() + "/general.log");
 		
