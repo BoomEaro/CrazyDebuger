@@ -3,6 +3,6 @@ Configuration:
    deathEnabled: true
    authmeEnabled: true
    runArchiveCheckTimer: true
-   
+   itemEnabled: true
    
 LastZip: 0

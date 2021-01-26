@@ -34,6 +34,7 @@ public class CrazyDebuger extends JavaPlugin {
     private volatile boolean moneyEnabled = true;
     private volatile boolean deathEnabled = true;
     private volatile boolean runArchiveCheckTimer = true;
+    private volatile boolean itemEnabled = false;
 
     private volatile boolean isReady = false;
 
@@ -99,7 +100,8 @@ public class CrazyDebuger extends JavaPlugin {
         this.moneyEnabled = getConfig().getBoolean("Configuration.moneyEnabled");
         this.deathEnabled = getConfig().getBoolean("Configuration.deathEnabled");
         this.runArchiveCheckTimer = getConfig().getBoolean("Configuration.runArchiveCheckTimer");
-
+        this.itemEnabled = getConfig().getBoolean("Configuration.itemEnabled");
+        
         this.lastZip = getConfig().getLong("LastZip");
     }
 
@@ -123,10 +125,14 @@ public class CrazyDebuger extends JavaPlugin {
     public boolean isDeathEnabled() {
         return this.deathEnabled;
     }
+    
+    public boolean isItemEnabled() {
+        return this.itemEnabled;
+    }
 
     public static String craftMainMsg(String java_date, String ip, String moneys, double x, double y, double z, String world, String pName) {
         DecimalFormat df = new DecimalFormat("#.##");
-        return "[" + java_date + "][{" + ip + "}( " + moneys + " (" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + ") " + pName + "]: ";
+        return "[" + java_date + "][" + (ip != null ? "{" + ip + "}" : "") + (moneys != null ? "( " + moneys + " " : "") + "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + ") " + pName + "]: ";
     }
 
     public static void sendLogMessage(Player player, String info, boolean isAction) {
@@ -149,15 +155,15 @@ public class CrazyDebuger extends JavaPlugin {
         //Если этот метод был вызван в основном потоке, то выполняем в другом потоке, в противном случае выполняем в этом же потоке
         if (Bukkit.isPrimaryThread()) {
             Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
-                sendThread(time, pName, ip, x, y, z, world, info, isAction);
+                sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
             });
             return;
         }
 
-        sendThread(time, pName, ip, x, y, z, world, info, isAction);
+        sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
     }
-
-    private static void sendThread(long time, String name, String ip, double x, double y, double z, String world, String info, boolean isAction) {
+    
+    private static void sendThreadPlayer(long time, String name, String ip, double x, double y, double z, String world, String info, boolean isAction) {
         Date date = new Date(time); 
         SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
         String java_date = jdf.format(date);
@@ -169,6 +175,7 @@ public class CrazyDebuger extends JavaPlugin {
 
         CrazyDebuger.getInstance().getSaveTimer().addLog(name, msg);
     }
+
 
     //ess support
     private class GettingMoneyEmpty implements IMoney {

@@ -103,12 +103,14 @@ public class SaveTimer extends AbstractTimer {
 
     public void addLog(String name, String msg) {
         synchronized (this.lock) {
-            List<String> l = this.log.get(name);
-            if (l == null) {
-                l = new ArrayList<String>();
-                this.log.put(name, l);
+            if (name != null) {
+                List<String> l = this.log.get(name);
+                if (l == null) {
+                    l = new ArrayList<String>();
+                    this.log.put(name, l);
+                }
+                l.add(msg);
             }
-            l.add(msg);
             
             this.mainLog.add(msg);
         }
