@@ -181,7 +181,7 @@ public class CrazyDebuger extends JavaPlugin {
     private class GettingMoneyEmpty implements IMoney {
         @Override
         public String getMoney(String user) {
-            return "";
+            return null;
         }
 
     }

@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,6 +18,7 @@ import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 import ru.boomearo.crazydebuger.CrazyDebuger;
@@ -84,7 +84,8 @@ public class MainListener implements Listener {
 	        return;
 	    }        
 	    
-	    Entity en = e.getEntity();
+	    Item en = e.getEntity();
+	    ItemStack item = en.getItemStack();
 	    
 	    Location loc = en.getLocation();
 	    
@@ -92,7 +93,7 @@ public class MainListener implements Listener {
         SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
         String java_date = jdf.format(date);
 
-	    String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), en.getName());
+	    String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), item.getType().name() + " (" + item.getAmount() + ")");
 	    
 	    CrazyDebuger.getInstance().getSaveTimer().addLog(null, msg.replace("\n", " ") + "Деспавн.\n");
 	    
@@ -108,15 +109,16 @@ public class MainListener implements Listener {
             return;
         }        
         
-        Item item = e.getItem();
+        Item en = e.getItem();
+        ItemStack item = en.getItemStack();
         
-        Location loc = item.getLocation();
+        Location loc = en.getLocation();
         
         Date date = new Date(System.currentTimeMillis()); 
         SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
         String java_date = jdf.format(date);
 
-        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), item.getWorld().getName(), item.getName());
+        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), item.getType().name() + " (" + item.getAmount() + ")");
         
         CrazyDebuger.getInstance().getSaveTimer().addLog(null, msg.replace("\n", " ") + "Подобран сущностью " + e.getEntity().getName() + "\n");
     }
