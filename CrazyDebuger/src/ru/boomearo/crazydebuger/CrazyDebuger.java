@@ -37,7 +37,9 @@ public class CrazyDebuger extends JavaPlugin {
     private volatile boolean isReady = false;
 
     private volatile Long lastZip = null;
-
+    
+    private static CrazyDebuger instance = null;
+    
     public void onEnable() {
         instance = this;
 
@@ -89,9 +91,8 @@ public class CrazyDebuger extends JavaPlugin {
         getLogger().info("Плагин успешно выключен.");
     }
 
-    private static CrazyDebuger instance = null;
     public static CrazyDebuger getInstance() { 
-        if (instance != null) return instance; return null; 
+        return instance;
     }
 
     public void loadConfig() {
