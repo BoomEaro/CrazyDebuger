@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -120,8 +121,12 @@ public class MainListener implements Listener {
 
         String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), item.getType().name() + " (" + item.getAmount() + ")");
         
-        CrazyDebuger.getInstance().getSaveTimer().addLog(null, msg.replace("\n", " ") + "Подобран сущностью " + e.getEntity().getName() + "\n");
+        Entity ee = e.getEntity();
+        
+        CrazyDebuger.getInstance().getSaveTimer().addLog(null, msg.replace("\n", " ") + "Подобран сущностью " + ee.getType().name() + " (" + ee.getName()  + ")" + "\n");
     }
+    
+    
 	/*@EventHandler(priority = EventPriority.MONITOR)
 	public void onPrepareAnvilEvent(PrepareAnvilEvent e) {
 		if (e.getResult() == null) {
