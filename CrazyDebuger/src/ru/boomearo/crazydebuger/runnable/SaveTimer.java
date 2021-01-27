@@ -74,7 +74,7 @@ public class SaveTimer extends AbstractTimer {
                         bufferWriter.write(ms);
                     }
                 } 
-                catch (Exception e) {
+                catch (IOException e) {
                     e.printStackTrace();
                 }
             }
