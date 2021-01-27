@@ -2,7 +2,6 @@ package ru.boomearo.crazydebuger;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
@@ -16,11 +15,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.earth2me.essentials.Essentials;
-import com.earth2me.essentials.utils.NumberUtil;
-
 import ru.boomearo.crazydebuger.listeners.DeathListener;
 import ru.boomearo.crazydebuger.listeners.MainListener;
+import ru.boomearo.crazydebuger.objects.essmoney.EssentialsMoney;
+import ru.boomearo.crazydebuger.objects.essmoney.IMoney;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
 import ru.boomearo.crazydebuger.runnable.ZipRunner;
 import ru.boomearo.crazydebuger.utils.Ziping;
@@ -108,11 +106,14 @@ public class CrazyDebuger extends JavaPlugin {
     private void loadMoneyEss() {
         Plugin tmpPl = Bukkit.getPluginManager().getPlugin("Essentials");
         if (tmpPl != null && this.moneyEnabled) {
-            this.money = new GettingMoneyLegal(tmpPl);
+            if (tmpPl instanceof com.earth2me.essentials.Essentials) {
+                com.earth2me.essentials.Essentials ess = (com.earth2me.essentials.Essentials) tmpPl;
+                this.money = new EssentialsMoney(ess);
+                return;
+            }
         }
-        else {
-            this.money = new GettingMoneyEmpty();
-        }
+        
+        this.money = new GettingMoneyEmpty();
     }
 
     public String getMoney(String name) {
@@ -152,13 +153,12 @@ public class CrazyDebuger extends JavaPlugin {
         double z = loc.getZ();
         String world = loc.getWorld().getName();
 
-        //Если этот метод был вызван в основном потоке, то выполняем в другом потоке, в противном случае выполняем в этом же потоке
-        if (Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
-                sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
-            });
-            return;
-        }
+        //if (Bukkit.isPrimaryThread()) {
+        //    Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
+        //        sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
+        //    });
+        //    return;
+        //}
 
         sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
     }
@@ -305,27 +305,6 @@ public class CrazyDebuger extends JavaPlugin {
         }
     }
 
-    private static class GettingMoneyLegal implements IMoney {
-        private Essentials ess;
-
-        public GettingMoneyLegal(Plugin pl) {
-            this.ess = (Essentials) pl;
-        }
-
-        @Override
-        public String getMoney(String user) {
-            BigDecimal bd = this.ess.getUser(user).getMoney();
-            return NumberUtil.displayCurrency(bd, this.ess);
-        }
-
-    }
-
-    private static interface IMoney {
-
-        public String getMoney(String user);
-
-    }
-    //
 
     public SaveTimer getSaveTimer() {
         return this.timer;
