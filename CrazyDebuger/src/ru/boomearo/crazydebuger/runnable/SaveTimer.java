@@ -3,6 +3,7 @@ package ru.boomearo.crazydebuger.runnable;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,22 +54,13 @@ public class SaveTimer extends AbstractTimer {
                 for (Entry<String, List<String>> entry : tmpLog.entrySet()) {
                     File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/players/latest/" + entry.getKey() + ".log");
                     file.getParentFile().mkdirs();
-                    FileWriter writer;
-                    try {
-                        writer = new FileWriter(file, true);
-                        BufferedWriter bufferWriter = new BufferedWriter(writer);
-
+                    
+                    try (BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(file, true))) {
                         for (String ms : entry.getValue()) {
-                            try {
-                                bufferWriter.write(ms);
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            bufferWriter.write(ms);
                         }
-                        bufferWriter.close();
                     } 
-                    catch (Exception e) {
+                    catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
@@ -76,19 +68,11 @@ public class SaveTimer extends AbstractTimer {
             if (!tmpMainLog.isEmpty()) {
                 File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/general/latest.log");
                 file.getParentFile().mkdirs();
-                FileWriter writer;
-                try {
-                    writer = new FileWriter(file, true);
-                    BufferedWriter bufferWriter = new BufferedWriter(writer);
+                
+                try (BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(file, true))) {
                     for (String ms : tmpMainLog) {
-                        try {
-                            bufferWriter.write(ms);
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        bufferWriter.write(ms);
                     }
-                    bufferWriter.close();
                 } 
                 catch (Exception e) {
                     e.printStackTrace();
