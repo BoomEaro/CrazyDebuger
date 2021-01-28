@@ -94,8 +94,7 @@ public class MainListener implements Listener {
         SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
         String java_date = jdf.format(date);
 
-	    @SuppressWarnings("deprecation")
-        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), item.getType() + (item.getDurability() > 0 ? ":" + item.getDurability() : "") + "(" + item.getAmount() + ")");
+        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item));
 	    
 	    CrazyDebuger.getInstance().getSaveTimer().addLog(null, msg.replace("\n", " ") + "Деспавн.\n");
 	    
@@ -120,8 +119,7 @@ public class MainListener implements Listener {
         SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
         String java_date = jdf.format(date);
 
-        @SuppressWarnings("deprecation")
-        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), item.getType() + (item.getDurability() > 0 ? ":" + item.getDurability() : "") + "(" + item.getAmount() + ")");
+        String msg = CrazyDebuger.craftMainMsg(java_date, null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item));
         
         Entity ee = e.getEntity();
         

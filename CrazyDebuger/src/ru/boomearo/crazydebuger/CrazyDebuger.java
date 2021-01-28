@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -313,6 +314,11 @@ public class CrazyDebuger extends JavaPlugin {
 
     public boolean isReady() {
         return this.isReady;
+    }
+    
+    @SuppressWarnings("deprecation")
+    public static String getNormalizedItemName(ItemStack item) {
+        return item.getType() + (item.getDurability() > 0 ? ":" + item.getDurability() : "") + "(" + item.getAmount() + ")";
     }
 
 }

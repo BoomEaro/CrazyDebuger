@@ -11,7 +11,6 @@ import ru.boomearo.crazydebuger.CrazyDebuger;
 
 public class DeathListener implements Listener {
 	
-	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerDeathEvent(PlayerDeathEvent e) {
 		if (e.getEntity().hasMetadata("NPC")) {
@@ -19,7 +18,7 @@ public class DeathListener implements Listener {
 		}
     	String d = "";
     	for (ItemStack is : e.getDrops()) {
-    		d = d + is.getType() + (is.getDurability() > 0 ? ":" + is.getDurability() : "") + "(" + is.getAmount() + ") ";
+    	    d = d + CrazyDebuger.getNormalizedItemName(is) + " ";
     	}
     	Player killer = e.getEntity().getKiller();
 		CrazyDebuger.sendLogMessage(e.getEntity(), "Погиб(" + d +")." + (killer != null ? " Убил: " + killer.getName() : ""), true);
