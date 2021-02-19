@@ -51,11 +51,14 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadConfig();
 
-        //Запускаем чекалку в другом потоке
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+        Thread thread = new Thread(() -> {
             //checkOldDir();
             checkOutdateFiles();
         });
+        
+        thread.setName("CheckOutdatedFiles-Thread");
+        thread.setPriority(3);
+        thread.start();
 
         loadMoneyEss();
 
