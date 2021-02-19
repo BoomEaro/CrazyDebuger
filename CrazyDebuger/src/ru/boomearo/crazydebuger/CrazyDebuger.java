@@ -1,9 +1,6 @@
 package ru.boomearo.crazydebuger;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.boomearo.crazydebuger.listeners.DeathListener;
 import ru.boomearo.crazydebuger.listeners.ItemListener;
 import ru.boomearo.crazydebuger.listeners.MainListener;
+import ru.boomearo.crazydebuger.objects.essmoney.EmptyMoney;
 import ru.boomearo.crazydebuger.objects.essmoney.EssentialsMoney;
 import ru.boomearo.crazydebuger.objects.essmoney.IMoney;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
@@ -35,9 +33,12 @@ public class CrazyDebuger extends JavaPlugin {
 
     private volatile boolean ready = false;
 
-    private volatile Long lastZip = null;
+    private volatile long lastZip = 0;
     
     private static CrazyDebuger instance = null;
+    
+    //Месяц
+    private static final long zipTime = 2419200;
     
     public void onEnable() {
         instance = this;
@@ -50,8 +51,11 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadConfig();
 
-        checkOldDir();
-        checkOutdateFiles();
+        //Запускаем чекалку в другом потоке
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            //checkOldDir();
+            checkOutdateFiles();
+        });
 
         loadMoneyEss();
 
@@ -106,7 +110,7 @@ public class CrazyDebuger extends JavaPlugin {
             }
         }
         
-        this.money = new GettingMoneyEmpty();
+        this.money = new EmptyMoney();
     }
 
     public String getMoney(String name) {
@@ -164,31 +168,48 @@ public class CrazyDebuger extends JavaPlugin {
         CrazyDebuger.getInstance().getSaveTimer().addLog(name, msg);
     }
 
-
-    //ess support
-    private class GettingMoneyEmpty implements IMoney {
-        @Override
-        public String getMoney(String user) {
-            return null;
-        }
-
-    }
-
     public void checkOutdateFiles() { 
         this.ready = false;
+        
+        long time = ((System.currentTimeMillis() - this.lastZip) / 1000);
+        
+        this.getLogger().info("Следующее сохранение логов через: " + (zipTime - time) + " сек.");
+        
+        DecimalFormat df = new DecimalFormat("#.##");
+        
+        File mainSource = new File(getDataFolder() + "/general/latest.log");
+        mainSource.getParentFile().mkdirs();
 
-        if (this.lastZip == null) {
-            this.ready = true;
+        double mainLogSize = getFileSizeMegaBytes(mainSource);
+        this.getLogger().info("Размер главного лога: " + df.format(mainLogSize) + " MB.");
+        
+        File plSource = new File(getDataFolder() + "/players/latest/");
+        plSource.getParentFile().mkdirs();
+        
+        double playerDirSize = getDirectorySizeMegaBytes(plSource);
+        this.getLogger().info("Размер директории игроков: " + df.format(playerDirSize) + " MB.");
+        
+        //Если прошел месяц то запускаем
+        //Если размер директории или главного лога привышает 150 мб, то запускаем архивирование все равно.
+        if (time > zipTime || mainLogSize > 150 || playerDirSize > 150) {
+
+            try {
+                runArchive(mainSource, plSource);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+            finally {
+                this.ready = true;
+            }
             return;
         }
+        
+        this.ready = true;
+    }
 
-        //Каждый месяц будет работать архивирование в фоне.
-        if (((System.currentTimeMillis() - this.lastZip) / 1000) <= 2419200) {
-            this.ready = true;
-            return;
-        }
-
-        this.getLogger().info("Начинаю архивирование всех логов в фоне.. ");
+    private void runArchive(File mainSource, File plSource) {
+        this.getLogger().info("Начинаю архивирование всех логов.. ");
 
         long start = System.currentTimeMillis();
 
@@ -201,35 +222,28 @@ public class CrazyDebuger extends JavaPlugin {
         SimpleDateFormat jdf = new SimpleDateFormat("HH-mm-ss   dd.MM.yyyy");
         String java_date = jdf.format(date);
 
-
-        File plSource = new File(getDataFolder() + "/players/latest/");
-        plSource.getParentFile().mkdirs();
         File plNew = new File(getDataFolder() + "/players/old/players-" + java_date + ".zip");
         plNew.getParentFile().mkdirs();
 
         File[] files = plSource.listFiles();
 
         if (files != null) {
-            if (files.length > 0) {
-                try {
-                    Ziping.zipDir(plSource, plNew);
-                } 
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                Ziping.zipDir(plSource, plNew, false);
+            } 
+            catch (Exception e) {
+                e.printStackTrace();
+            }
 
-                for (File f : files) {
-                    if (f.isFile()) {
-                        f.delete();
-                    }
+            for (File f : files) {
+                if (f.isFile()) {
+                    f.delete();
                 }
             }
         }
 
         this.getLogger().info("Архивирование отдельных игроков завершено.");
 
-        File mainSource = new File(getDataFolder() + "/general/latest.log");
-        mainSource.getParentFile().mkdirs();
         File mainNew = new File(getDataFolder() + "/general/old/general-" + java_date + ".zip");
         mainNew.getParentFile().mkdirs();
 
@@ -243,11 +257,27 @@ public class CrazyDebuger extends JavaPlugin {
         long end = System.currentTimeMillis();
 
         this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
-
-        this.ready = true;
     }
-
-    private void checkOldDir() {
+    
+    private static double getDirectorySizeMegaBytes(File dir) {
+        long size = 0;
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    size = size + file.length();
+                }
+            }
+        }
+        
+        return (double) size / (1024 * 1024);
+    }
+    
+    private static double getFileSizeMegaBytes(File file) {
+        return (double) file.length() / (1024 * 1024);
+    }
+    
+    /*private void checkOldDir() {
         File plSource = new File(getDataFolder() + "/players/latest/");
         File mainOldSource = new File(getDataFolder() + "/general.log");
 
@@ -291,7 +321,7 @@ public class CrazyDebuger extends JavaPlugin {
             }
 
         }
-    }
+    }*/
 
 
     public SaveTimer getSaveTimer() {
