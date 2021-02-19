@@ -17,25 +17,23 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import ru.boomearo.crazydebuger.listeners.DeathListener;
+import ru.boomearo.crazydebuger.listeners.ItemListener;
 import ru.boomearo.crazydebuger.listeners.MainListener;
 import ru.boomearo.crazydebuger.objects.essmoney.EssentialsMoney;
 import ru.boomearo.crazydebuger.objects.essmoney.IMoney;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
-import ru.boomearo.crazydebuger.runnable.ZipRunner;
 import ru.boomearo.crazydebuger.utils.Ziping;
 
 public class CrazyDebuger extends JavaPlugin {
     private IMoney money = null;
 
     private SaveTimer timer = null;
-    private ZipRunner ziper = null;
 
     private volatile boolean moneyEnabled = true;
     private volatile boolean deathEnabled = true;
-    private volatile boolean runArchiveCheckTimer = true;
     private volatile boolean itemEnabled = false;
 
-    private volatile boolean isReady = false;
+    private volatile boolean ready = false;
 
     private volatile Long lastZip = null;
     
@@ -62,18 +60,15 @@ public class CrazyDebuger extends JavaPlugin {
             this.timer.setPriority(3);
             this.timer.start();
         }
-        if (this.runArchiveCheckTimer) {
-            if (this.ziper == null) {
-                this.ziper = new ZipRunner();
-                this.ziper.setPriority(3);
-                this.ziper.start();
-            }
-        }
 
         getServer().getPluginManager().registerEvents(new MainListener(), this);
 
         if (this.deathEnabled) {
             getServer().getPluginManager().registerEvents(new DeathListener(), this);
+        }
+        
+        if (this.itemEnabled) {
+            getServer().getPluginManager().registerEvents(new ItemListener(), this);
         }
 
         getLogger().info("Плагин успешно включен.");
@@ -85,9 +80,6 @@ public class CrazyDebuger extends JavaPlugin {
 
         //Завершаем таймеры
         this.timer.interrupt();
-        if (this.ziper != null) {
-            this.ziper.interrupt();
-        }
 
         getLogger().info("Плагин успешно выключен.");
     }
@@ -99,7 +91,6 @@ public class CrazyDebuger extends JavaPlugin {
     public void loadConfig() {
         this.moneyEnabled = getConfig().getBoolean("Configuration.moneyEnabled");
         this.deathEnabled = getConfig().getBoolean("Configuration.deathEnabled");
-        this.runArchiveCheckTimer = getConfig().getBoolean("Configuration.runArchiveCheckTimer");
         this.itemEnabled = getConfig().getBoolean("Configuration.itemEnabled");
         
         this.lastZip = getConfig().getLong("LastZip");
@@ -139,11 +130,6 @@ public class CrazyDebuger extends JavaPlugin {
     }
 
     public static void sendLogMessage(Player player, String info, boolean isAction) {
-        CrazyDebuger cd = CrazyDebuger.getInstance();
-        if (!cd.isReady()) {
-            cd.getLogger().severe("Предотвращена попытка отправки в лог сообщения. Плагин не готов!");
-            return;
-        }
         long time = System.currentTimeMillis();
 
         String pName = player.getName();
@@ -189,16 +175,16 @@ public class CrazyDebuger extends JavaPlugin {
     }
 
     public void checkOutdateFiles() { 
-        this.isReady = false;
+        this.ready = false;
 
         if (this.lastZip == null) {
-            this.isReady = true;
+            this.ready = true;
             return;
         }
 
         //Каждый месяц будет работать архивирование в фоне.
         if (((System.currentTimeMillis() - this.lastZip) / 1000) <= 2419200) {
-            this.isReady = true;
+            this.ready = true;
             return;
         }
 
@@ -258,7 +244,7 @@ public class CrazyDebuger extends JavaPlugin {
 
         this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
 
-        this.isReady = true;
+        this.ready = true;
     }
 
     private void checkOldDir() {
@@ -313,7 +299,7 @@ public class CrazyDebuger extends JavaPlugin {
     }
 
     public boolean isReady() {
-        return this.isReady;
+        return this.ready;
     }
     
     @SuppressWarnings("deprecation")
