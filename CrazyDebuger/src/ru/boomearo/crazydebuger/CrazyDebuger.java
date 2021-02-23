@@ -163,7 +163,7 @@ public class CrazyDebuger extends JavaPlugin {
         (money != null ? "( " + money + " " : "") + 
         "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + 
         ") " + entity + "]: " +
-        (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")));
+        (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==" : ChatColor.stripColor(info.replace("\n", " ")));
     }
 
     public void checkOutdateFiles() { 
