@@ -1,6 +1,7 @@
 package ru.boomearo.crazydebuger;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +20,8 @@ import ru.boomearo.crazydebuger.listeners.MainListener;
 import ru.boomearo.crazydebuger.objects.essmoney.EmptyMoney;
 import ru.boomearo.crazydebuger.objects.essmoney.EssentialsMoney;
 import ru.boomearo.crazydebuger.objects.essmoney.IMoney;
+import ru.boomearo.crazydebuger.objects.logger.LogEntry;
+import ru.boomearo.crazydebuger.objects.logger.LogLevel;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
 import ru.boomearo.crazydebuger.utils.Ziping;
 
@@ -63,7 +66,7 @@ public class CrazyDebuger extends JavaPlugin {
         loadMoneyEss();
 
         if (this.timer == null) {
-            this.timer = new SaveTimer(this);
+            this.timer = new SaveTimer();
             this.timer.setPriority(3);
             this.timer.start();
         }
@@ -131,44 +134,36 @@ public class CrazyDebuger extends JavaPlugin {
         return this.itemEnabled;
     }
 
-    public static String craftMainMsg(String java_date, String ip, String moneys, double x, double y, double z, String world, String pName) {
-        DecimalFormat df = new DecimalFormat("#.##");
-        return "[" + java_date + "][" + (ip != null ? "{" + ip + "}" : "") + (moneys != null ? "( " + moneys + " " : "") + "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + ") " + pName + "]: ";
-    }
 
     public static void sendLogMessage(Player player, String info, boolean isAction) {
         long time = System.currentTimeMillis();
 
         String pName = player.getName();
-        String ip = player.getAddress().getHostString();
-
+        InetSocketAddress address = player.getAddress();
+        String ip = null;
+        if (address != null) {
+            ip = address.getHostString();
+        }
+        
         Location loc = player.getLocation();
         double x = loc.getX();
         double y = loc.getY();
         double z = loc.getZ();
         String world = loc.getWorld().getName();
 
-        //if (Bukkit.isPrimaryThread()) {
-        //    Bukkit.getScheduler().runTaskAsynchronously(cd, () -> {
-        //        sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
-        //    });
-        //    return;
-        //}
-
-        sendThreadPlayer(time, pName, ip, x, y, z, world, info, isAction);
+        String money = CrazyDebuger.getInstance().getMoney(pName);
+        
+        CrazyDebuger.getInstance().getSaveTimer().addLog(pName, new LogEntry(time, LogLevel.INFO, craftMsgLog(ip, money, x, y, z, world, pName, info, isAction)));
     }
     
-    private static void sendThreadPlayer(long time, String name, String ip, double x, double y, double z, String world, String info, boolean isAction) {
-        Date date = new Date(time); 
-        SimpleDateFormat jdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
-        String java_date = jdf.format(date);
-
-        String money = CrazyDebuger.getInstance().getMoney(name);
-
-        String msg = craftMainMsg(java_date, ip, money, 
-                x, y, z, world, name) + (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")) + "\n");
-
-        CrazyDebuger.getInstance().getSaveTimer().addLog(name, msg);
+    public static String craftMsgLog(String ip, String money, double x, double y, double z, String world, String entity, String info, boolean isAction) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        
+        return "[" + (ip != null ? "{" + ip + "}" : "") + 
+        (money != null ? "( " + money + " " : "") + 
+        "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + 
+        ") " + entity + "]: " +
+        (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==\n" : ChatColor.stripColor(info.replace("\n", " ")));
     }
 
     public void checkOutdateFiles() { 
