@@ -18,54 +18,58 @@ import ru.boomearo.crazydebuger.CrazyDebuger;
 
 public class MainListener implements Listener {
 
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onAsyncPlayerChatEvent(AsyncPlayerChatEvent e) {
-		CrazyDebuger.sendLogMessage(e.getPlayer(), (e.isCancelled() ? "(#): " : "") + "\"" + e.getMessage() + "\"", false);
-	}
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerCommandEvent(PlayerCommandPreprocessEvent e) {
-		CrazyDebuger.sendLogMessage(e.getPlayer(), (e.isCancelled() ? "(#): " : "") + "\"" + e.getMessage() + "\"", false);
-	}
-	
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerKickEvent(PlayerKickEvent e) {
-		CrazyDebuger.sendLogMessage(e.getPlayer(), "Кикнут: " + e.getReason(), true);
-	}
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerJoinEvent(PlayerJoinEvent e) {
-		CrazyDebuger.sendLogMessage(e.getPlayer(), "Подключился.", true);
-	}
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerQuitEvent(PlayerQuitEvent e) {
-		CrazyDebuger.sendLogMessage(e.getPlayer(), "Отключился.", true);
-	}
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerEditBookEvent(PlayerEditBookEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
-		BookMeta bm = e.getNewBookMeta();
-		if (bm != null) {
-			List<String> pages = bm.getPages();
-			if (pages != null) {
-				String tile = bm.getTitle();
-				String ss = (tile != null ? tile + ":" : "");
-				for (String msg : pages) {
-					ss = ss + "'" + msg + "' ";
-				}
-				CrazyDebuger.sendLogMessage(e.getPlayer(), "Написал книгу: " + ss, true);
-			}
-		}
-	}	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onSignChangeEvent(SignChangeEvent e) {
-		if (e.isCancelled()) {
-			return;
-		}
-		CrazyDebuger.sendLogMessage(e.getPlayer(), "Создал табличку: '" + e.getLine(0) + "' '" + e.getLine(1) + "' '" + e.getLine(2) + "' '" + e.getLine(3) + "'", true);
-	}
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onAsyncPlayerChatEvent(AsyncPlayerChatEvent e) {
+        CrazyDebuger.sendLogMessage(e.getPlayer(), (e.isCancelled() ? "(#): " : "") + "\"" + e.getMessage() + "\"", false);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerCommandEvent(PlayerCommandPreprocessEvent e) {
+        CrazyDebuger.sendLogMessage(e.getPlayer(), (e.isCancelled() ? "(#): " : "") + "\"" + e.getMessage() + "\"", false);
+    }
+
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerKickEvent(PlayerKickEvent e) {
+        CrazyDebuger.sendLogMessage(e.getPlayer(), "Кикнут: " + e.getReason(), true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerJoinEvent(PlayerJoinEvent e) {
+        CrazyDebuger.sendLogMessage(e.getPlayer(), "Подключился.", true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuitEvent(PlayerQuitEvent e) {
+        CrazyDebuger.sendLogMessage(e.getPlayer(), "Отключился.", true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerEditBookEvent(PlayerEditBookEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
+        BookMeta bm = e.getNewBookMeta();
+        if (bm != null) {
+            List<String> pages = bm.getPages();
+            if (pages != null) {
+                String tile = bm.getTitle();
+                String ss = (tile != null ? tile + ":" : "");
+                for (String msg : pages) {
+                    ss = ss + "'" + msg + "' ";
+                }
+                CrazyDebuger.sendLogMessage(e.getPlayer(), "Написал книгу: " + ss, true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onSignChangeEvent(SignChangeEvent e) {
+        if (e.isCancelled()) {
+            return;
+        }
+        CrazyDebuger.sendLogMessage(e.getPlayer(), "Создал табличку: '" + e.getLine(0) + "' '" + e.getLine(1) + "' '" + e.getLine(2) + "' '" + e.getLine(3) + "'", true);
+    }
     
     
 	/*@EventHandler(priority = EventPriority.MONITOR)

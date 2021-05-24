@@ -37,12 +37,12 @@ public class CrazyDebuger extends JavaPlugin {
     private volatile boolean ready = false;
 
     private volatile long lastZip = 0;
-    
+
     private static CrazyDebuger instance = null;
-    
+
     //Месяц
     private static final long zipTime = 2419200;
-    
+
     public void onEnable() {
         instance = this;
 
@@ -54,11 +54,8 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadConfig();
 
-        Thread thread = new Thread(() -> {
-            //checkOldDir();
-            checkOutdateFiles();
-        });
-        
+        Thread thread = new Thread(this::checkOutdateFiles);
+
         thread.setName("CheckOutdatedFiles-Thread");
         thread.setPriority(3);
         thread.start();
@@ -76,7 +73,7 @@ public class CrazyDebuger extends JavaPlugin {
         if (this.deathEnabled) {
             getServer().getPluginManager().registerEvents(new DeathListener(), this);
         }
-        
+
         if (this.itemEnabled) {
             getServer().getPluginManager().registerEvents(new ItemListener(), this);
         }
@@ -84,6 +81,7 @@ public class CrazyDebuger extends JavaPlugin {
         getLogger().info("Плагин успешно включен.");
 
     }
+
     public void onDisable() {
         //Сохраняем оставшиеся задачи
         this.timer.save();
@@ -94,7 +92,7 @@ public class CrazyDebuger extends JavaPlugin {
         getLogger().info("Плагин успешно выключен.");
     }
 
-    public static CrazyDebuger getInstance() { 
+    public static CrazyDebuger getInstance() {
         return instance;
     }
 
@@ -102,7 +100,7 @@ public class CrazyDebuger extends JavaPlugin {
         this.moneyEnabled = getConfig().getBoolean("Configuration.moneyEnabled");
         this.deathEnabled = getConfig().getBoolean("Configuration.deathEnabled");
         this.itemEnabled = getConfig().getBoolean("Configuration.itemEnabled");
-        
+
         this.lastZip = getConfig().getLong("LastZip");
     }
 
@@ -115,7 +113,7 @@ public class CrazyDebuger extends JavaPlugin {
                 return;
             }
         }
-        
+
         this.money = new EmptyMoney();
     }
 
@@ -126,10 +124,11 @@ public class CrazyDebuger extends JavaPlugin {
     public boolean isMoneyEnabled() {
         return this.moneyEnabled;
     }
+
     public boolean isDeathEnabled() {
         return this.deathEnabled;
     }
-    
+
     public boolean isItemEnabled() {
         return this.itemEnabled;
     }
@@ -144,7 +143,7 @@ public class CrazyDebuger extends JavaPlugin {
         if (address != null) {
             ip = address.getHostString();
         }
-        
+
         Location loc = player.getLocation();
         double x = loc.getX();
         double y = loc.getY();
@@ -152,41 +151,41 @@ public class CrazyDebuger extends JavaPlugin {
         String world = loc.getWorld().getName();
 
         String money = CrazyDebuger.getInstance().getMoney(pName);
-        
+
         CrazyDebuger.getInstance().getSaveTimer().addLog(pName, new LogEntry(time, LogLevel.INFO, craftMsgLog(ip, money, x, y, z, world, pName, info, isAction)));
     }
-    
+
     public static String craftMsgLog(String ip, String money, double x, double y, double z, String world, String entity, String info, boolean isAction) {
         DecimalFormat df = new DecimalFormat("#.##");
-        
-        return "[" + (ip != null ? "{" + ip + "}" : "") + 
-        (money != null ? "( " + money + " " : "") + 
-        "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" + 
-        ") " + entity + "]: " +
-        (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==" : ChatColor.stripColor(info.replace("\n", " ")));
+
+        return "[" + (ip != null ? "{" + ip + "}" : "") +
+                (money != null ? "( " + money + " " : "") +
+                "(" + df.format(x) + "|" + df.format(y) + "|" + df.format(z) + "|" + world + ")" +
+                ") " + entity + "]: " +
+                (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==" : ChatColor.stripColor(info.replace("\n", " ")));
     }
 
-    public void checkOutdateFiles() { 
+    public void checkOutdateFiles() {
         this.ready = false;
-        
+
         long time = ((System.currentTimeMillis() - this.lastZip) / 1000);
-        
+
         this.getLogger().info("Следующее сохранение логов через: " + (zipTime - time) + " сек.");
-        
+
         DecimalFormat df = new DecimalFormat("#.##");
-        
+
         File mainSource = new File(getDataFolder() + "/general/latest.log");
         mainSource.getParentFile().mkdirs();
 
         double mainLogSize = getFileSizeMegaBytes(mainSource);
         this.getLogger().info("Размер главного лога: " + df.format(mainLogSize) + " MB.");
-        
+
         File plSource = new File(getDataFolder() + "/players/latest/");
         plSource.getParentFile().mkdirs();
-        
+
         double playerDirSize = getDirectorySizeMegaBytes(plSource);
         this.getLogger().info("Размер директории игроков: " + df.format(playerDirSize) + " MB.");
-        
+
         //Если прошел месяц то запускаем
         //Если размер директории или главного лога привышает 150 мб, то запускаем архивирование все равно.
         if (time > zipTime || mainLogSize > 150 || playerDirSize > 150) {
@@ -202,7 +201,7 @@ public class CrazyDebuger extends JavaPlugin {
             }
             return;
         }
-        
+
         this.ready = true;
     }
 
@@ -216,7 +215,7 @@ public class CrazyDebuger extends JavaPlugin {
 
         this.saveConfig();
 
-        Date date = new Date(System.currentTimeMillis()); 
+        Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat jdf = new SimpleDateFormat("HH-mm-ss   dd.MM.yyyy");
         String java_date = jdf.format(date);
 
@@ -228,7 +227,7 @@ public class CrazyDebuger extends JavaPlugin {
         if (files != null) {
             try {
                 Ziping.zipDir(plSource, plNew, false);
-            } 
+            }
             catch (Exception e) {
                 e.printStackTrace();
             }
@@ -256,7 +255,7 @@ public class CrazyDebuger extends JavaPlugin {
 
         this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
     }
-    
+
     private static double getDirectorySizeMegaBytes(File dir) {
         long size = 0;
         File[] files = dir.listFiles();
@@ -267,10 +266,10 @@ public class CrazyDebuger extends JavaPlugin {
                 }
             }
         }
-        
+
         return (double) size / (1024 * 1024);
     }
-    
+
     private static double getFileSizeMegaBytes(File file) {
         return (double) file.length() / (1024 * 1024);
     }
@@ -329,7 +328,7 @@ public class CrazyDebuger extends JavaPlugin {
     public boolean isReady() {
         return this.ready;
     }
-    
+
     @SuppressWarnings("deprecation")
     public static String getNormalizedItemName(ItemStack item) {
         return item.getType() + (item.getDurability() > 0 ? ":" + item.getDurability() : "") + "(" + item.getAmount() + ")";

@@ -21,32 +21,32 @@ public class ItemListener implements Listener {
         if (e.isCancelled()) {
             return;
         }
-        
+
         Item en = e.getEntity();
         ItemStack item = en.getItemStack();
-        
+
         Location loc = en.getLocation();
 
         //String ip, String money, double x, double y, double z, String world, String entity, String info, boolean isAction
         CrazyDebuger.getInstance().getSaveTimer().addLog(null, new LogEntry(System.currentTimeMillis(), LogLevel.WARNING, CrazyDebuger.craftMsgLog(null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item), "Деспавн.", true)));
-        
+
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityPickupItemEvent(EntityPickupItemEvent e) {
         if (e.isCancelled()) {
             return;
         }
-        
+
         Item en = e.getItem();
         ItemStack item = en.getItemStack();
-        
+
         Location loc = en.getLocation();
 
         Entity ee = e.getEntity();
 
-        CrazyDebuger.getInstance().getSaveTimer().addLog(null, new LogEntry(System.currentTimeMillis(), LogLevel.WARNING, CrazyDebuger.craftMsgLog(null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item), "Подобран сущностью " + ee.getType().name() + " (" + ee.getName()  + ")", true)));
-        
+        CrazyDebuger.getInstance().getSaveTimer().addLog(null, new LogEntry(System.currentTimeMillis(), LogLevel.WARNING, CrazyDebuger.craftMsgLog(null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item), "Подобран сущностью " + ee.getType().name() + " (" + ee.getName() + ")", true)));
+
     }
-    
+
 }

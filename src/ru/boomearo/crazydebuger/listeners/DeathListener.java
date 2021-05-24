@@ -10,17 +10,17 @@ import org.bukkit.inventory.ItemStack;
 import ru.boomearo.crazydebuger.CrazyDebuger;
 
 public class DeathListener implements Listener {
-	
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerDeathEvent(PlayerDeathEvent e) {
-		if (e.getEntity().hasMetadata("NPC")) {
-			return;
-		}
-    	String d = "";
-    	for (ItemStack is : e.getDrops()) {
-    	    d = d + CrazyDebuger.getNormalizedItemName(is) + " ";
-    	}
-    	Player killer = e.getEntity().getKiller();
-		CrazyDebuger.sendLogMessage(e.getEntity(), "Погиб(" + d +")." + (killer != null ? " Убил: " + killer.getName() : ""), true);
-	}
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeathEvent(PlayerDeathEvent e) {
+        if (e.getEntity().hasMetadata("NPC")) {
+            return;
+        }
+        String d = "";
+        for (ItemStack is : e.getDrops()) {
+            d = d + CrazyDebuger.getNormalizedItemName(is) + " ";
+        }
+        Player killer = e.getEntity().getKiller();
+        CrazyDebuger.sendLogMessage(e.getEntity(), "Погиб(" + d + ")." + (killer != null ? " Убил: " + killer.getName() : ""), true);
+    }
 }

@@ -25,7 +25,7 @@ public class Ziping {
 
     public static void zipFile(File source, File zip) {
         try (ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(zip));
-                FileInputStream fis = new FileInputStream(source);) {
+             FileInputStream fis = new FileInputStream(source);) {
 
 
             ZipEntry entry1 = new ZipEntry(source.getName());
@@ -38,19 +38,19 @@ public class Ziping {
             // закрываем текущую запись для новой записи
             zout.closeEntry();
         }
-        catch (Exception ex){
+        catch (Exception ex) {
             ex.printStackTrace();
-        } 
+        }
     }
 
     private static void addDirectory(ZipOutputStream zout, File fileSource, boolean recursion) {
 
         File[] files = fileSource.listFiles();
         //System.out.println("Добавление директории <" + fileSource.getName() + ">");
-        for(int i = 0; i < files.length; i++) {
+        for (int i = 0; i < files.length; i++) {
             // Если file является директорией, то рекурсивно вызываем 
             // метод addDirectory
-            
+
             //Если передан аргумент рекурсии, значит ищет внутри папки
             if (files[i].isDirectory()) {
                 if (recursion) {
@@ -66,7 +66,7 @@ public class Ziping {
 
                 byte[] buffer = new byte[4048];
                 int length;
-                while((length = fis.read(buffer)) > 0)
+                while ((length = fis.read(buffer)) > 0)
                     zout.write(buffer, 0, length);
                 // Закрываем ZipOutputStream и InputStream
                 zout.closeEntry();
@@ -76,5 +76,5 @@ public class Ziping {
             }
         }
     }
-    
+
 }

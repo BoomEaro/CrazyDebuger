@@ -23,7 +23,7 @@ public class SaveTimer extends AbstractTimer {
     private final List<LogEntry> mainLog = new ArrayList<LogEntry>();
 
     private final Object lock = new Object();
-    
+
     private final DateFormat df = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS");
 
     public SaveTimer() {
@@ -40,7 +40,7 @@ public class SaveTimer extends AbstractTimer {
             if (!CrazyDebuger.getInstance().isReady()) {
                 return;
             }
-            
+
             //Получаем полную копию того что мы должны записать на диск.
             //Для этого синхронизируемся, делаем полное копирование, затем удаляем.
             //После чего доступ на запись будет разблокирована что увеличит пропускную способность
@@ -49,23 +49,23 @@ public class SaveTimer extends AbstractTimer {
             synchronized (this.lock) {
                 tmpLog = new HashMap<String, List<LogEntry>>(this.log);
                 this.log.clear();
-                
+
                 tmpMainLog = new ArrayList<LogEntry>(this.mainLog);
                 this.mainLog.clear();
             }
-            
+
             //Далее работаем с локальной копией. Все что в этой копии - должно быть записано и этого нет в общих коллекциях.
-            
+
             if (!tmpLog.isEmpty()) {
                 for (Entry<String, List<LogEntry>> entry : tmpLog.entrySet()) {
                     File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/players/latest/" + entry.getKey() + ".log");
                     file.getParentFile().mkdirs();
-                    
+
                     try (BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(file, true))) {
                         for (LogEntry ms : entry.getValue()) {
                             bufferWriter.write("[" + df.format(new Date(ms.getTime())) + "] [" + ms.getLogLevel().toString() + "] " + ms.getMessage() + "\n");
                         }
-                    } 
+                    }
                     catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -74,12 +74,12 @@ public class SaveTimer extends AbstractTimer {
             if (!tmpMainLog.isEmpty()) {
                 File file = new File(CrazyDebuger.getInstance().getDataFolder() + "/general/latest.log");
                 file.getParentFile().mkdirs();
-                
+
                 try (BufferedWriter bufferWriter = new BufferedWriter(new FileWriter(file, true))) {
                     for (LogEntry ms : tmpMainLog) {
                         bufferWriter.write("[" + df.format(new Date(ms.getTime())) + "] [" + ms.getLogLevel().toString() + "] " + ms.getMessage() + "\n");
                     }
-                } 
+                }
                 catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -101,7 +101,7 @@ public class SaveTimer extends AbstractTimer {
                 }
                 l.add(msg);
             }
-            
+
             this.mainLog.add(msg);
         }
     }
