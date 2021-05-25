@@ -9,15 +9,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<build>
-		<sourceDirectory>src</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -83,8 +74,8 @@
 	</build>
 	<repositories>
 		<repository>
-			<id>essentialsx</id>
-			<url>https://repo.essentialsx.net/releases/</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -96,10 +87,10 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>net.ess3</groupId>
-			<artifactId>EssentialsX</artifactId>
+			<groupId>com.github.MilkBowl</groupId>
+			<artifactId>VaultAPI</artifactId>
+			<version>1.7</version>
 			<scope>provided</scope>
-			<version>2.18.2</version>
 		</dependency>
 	</dependencies>
 </project>
