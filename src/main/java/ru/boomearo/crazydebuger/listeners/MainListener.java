@@ -54,9 +54,9 @@ public class MainListener implements Listener {
             List<String> pages = bm.getPages();
             if (pages != null) {
                 String tile = bm.getTitle();
-                String ss = (tile != null ? tile + ":" : "");
+                StringBuilder ss = new StringBuilder((tile != null ? tile + ":" : ""));
                 for (String msg : pages) {
-                    ss = ss + "'" + msg + "' ";
+                    ss.append("'").append(msg).append("' ");
                 }
                 CrazyDebuger.sendLogMessage(e.getPlayer(), "Написал книгу: " + ss, true);
             }

@@ -16,9 +16,9 @@ public class DeathListener implements Listener {
         if (e.getEntity().hasMetadata("NPC")) {
             return;
         }
-        String d = "";
+        StringBuilder d = new StringBuilder();
         for (ItemStack is : e.getDrops()) {
-            d = d + CrazyDebuger.getNormalizedItemName(is) + " ";
+            d.append(CrazyDebuger.getNormalizedItemName(is)).append(" ");
         }
         Player killer = e.getEntity().getKiller();
         CrazyDebuger.sendLogMessage(e.getEntity(), "Погиб(" + d + ")." + (killer != null ? " Убил: " + killer.getName() : ""), true);

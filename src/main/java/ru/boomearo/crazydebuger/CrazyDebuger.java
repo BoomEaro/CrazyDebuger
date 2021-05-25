@@ -12,21 +12,22 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import ru.boomearo.crazydebuger.listeners.DeathListener;
 import ru.boomearo.crazydebuger.listeners.ItemListener;
 import ru.boomearo.crazydebuger.listeners.MainListener;
-import ru.boomearo.crazydebuger.objects.essmoney.EmptyMoney;
-import ru.boomearo.crazydebuger.objects.essmoney.EssentialsMoney;
-import ru.boomearo.crazydebuger.objects.essmoney.IMoney;
+import ru.boomearo.crazydebuger.objects.IVault;
 import ru.boomearo.crazydebuger.objects.logger.LogEntry;
 import ru.boomearo.crazydebuger.objects.logger.LogLevel;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
 import ru.boomearo.crazydebuger.utils.Ziping;
+import ru.boomearo.crazydebuger.utils.NumberUtils;
 
 public class CrazyDebuger extends JavaPlugin {
-    private IMoney money = null;
+
+    private IVault vault = null;
 
     private SaveTimer timer = null;
 
@@ -43,6 +44,7 @@ public class CrazyDebuger extends JavaPlugin {
     //Месяц
     private static final long zipTime = 2419200;
 
+    @Override
     public void onEnable() {
         instance = this;
 
@@ -54,13 +56,14 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadConfig();
 
+        loadVault();
+
         Thread thread = new Thread(this::checkOutdateFiles);
 
         thread.setName("CheckOutdatedFiles-Thread");
         thread.setPriority(3);
         thread.start();
 
-        loadMoneyEss();
 
         if (this.timer == null) {
             this.timer = new SaveTimer();
@@ -82,6 +85,7 @@ public class CrazyDebuger extends JavaPlugin {
 
     }
 
+    @Override
     public void onDisable() {
         //Сохраняем оставшиеся задачи
         this.timer.save();
@@ -96,6 +100,37 @@ public class CrazyDebuger extends JavaPlugin {
         return instance;
     }
 
+    private void loadVault() {
+        //Сначала по умолчанию создает пустой Vault с лямбдой
+        this.vault = player -> null;
+        try {
+            Plugin vaultPl = Bukkit.getPluginManager().getPlugin("Vault");
+            //Убеждаемся что Vault на сервере и в конфигурации он включен
+            if (vaultPl == null) {
+                throw new Exception("Vault не найден.");
+            }
+            if (!this.moneyEnabled) {
+                throw new Exception("Денежный лог отключен в настройках.");
+            }
+
+            RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+            if (rsp == null) {
+                throw new Exception("Сервис Vault не найден.");
+            }
+            net.milkbowl.vault.economy.Economy econ = rsp.getProvider();
+            if (econ == null) {
+                throw new Exception("Экономика Vault не найдена.");
+            }
+
+            //Создаем лямбду с реализацией
+            this.vault = player -> NumberUtils.displayCurrency(econ.getBalance(player));
+            this.getLogger().info("Vault успешно привязан!");
+        }
+        catch (Exception e) {
+            this.getLogger().warning("Ошибка привязки Vault: " + e.getMessage());
+        }
+    }
+
     public void loadConfig() {
         this.moneyEnabled = getConfig().getBoolean("Configuration.moneyEnabled");
         this.deathEnabled = getConfig().getBoolean("Configuration.deathEnabled");
@@ -104,35 +139,9 @@ public class CrazyDebuger extends JavaPlugin {
         this.lastZip = getConfig().getLong("LastZip");
     }
 
-    private void loadMoneyEss() {
-        Plugin tmpPl = Bukkit.getPluginManager().getPlugin("Essentials");
-        if (tmpPl != null && this.moneyEnabled) {
-            if (tmpPl instanceof com.earth2me.essentials.Essentials) {
-                com.earth2me.essentials.Essentials ess = (com.earth2me.essentials.Essentials) tmpPl;
-                this.money = new EssentialsMoney(ess);
-                return;
-            }
-        }
-
-        this.money = new EmptyMoney();
+    public IVault getVault() {
+        return vault;
     }
-
-    public String getMoney(String name) {
-        return this.money.getMoney(name);
-    }
-
-    public boolean isMoneyEnabled() {
-        return this.moneyEnabled;
-    }
-
-    public boolean isDeathEnabled() {
-        return this.deathEnabled;
-    }
-
-    public boolean isItemEnabled() {
-        return this.itemEnabled;
-    }
-
 
     public static void sendLogMessage(Player player, String info, boolean isAction) {
         long time = System.currentTimeMillis();
@@ -150,7 +159,7 @@ public class CrazyDebuger extends JavaPlugin {
         double z = loc.getZ();
         String world = loc.getWorld().getName();
 
-        String money = CrazyDebuger.getInstance().getMoney(pName);
+        String money = CrazyDebuger.getInstance().getVault().getMoney(pName);
 
         CrazyDebuger.getInstance().getSaveTimer().addLog(pName, new LogEntry(time, LogLevel.INFO, craftMsgLog(ip, money, x, y, z, world, pName, info, isAction)));
     }
@@ -273,53 +282,6 @@ public class CrazyDebuger extends JavaPlugin {
     private static double getFileSizeMegaBytes(File file) {
         return (double) file.length() / (1024 * 1024);
     }
-    
-    /*private void checkOldDir() {
-        File plSource = new File(getDataFolder() + "/players/latest/");
-        File mainOldSource = new File(getDataFolder() + "/general.log");
-
-        if (!plSource.exists() && mainOldSource.exists()) {
-            this.getLogger().info("Обнаружена старая директория.. переносм на новую.");
-
-            File plOldSource = new File(getDataFolder() + "/players/");
-
-            this.getLogger().info("Переносим логи игроков на новую директорию...");
-
-
-            File plTmp = new File(getDataFolder() + "/playerstmp/");
-            plTmp.getParentFile().mkdirs();
-
-            try {
-                Files.move(plOldSource.toPath(), plTmp.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            } 
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            plSource.getParentFile().mkdirs();
-
-            try {
-                Files.move(plTmp.toPath(), plSource.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            this.getLogger().info("Переносим главный лог на новую директорию...");
-
-            File mainSource = new File(getDataFolder() + "/general/latest.log");
-            mainSource.getParentFile().mkdirs();
-
-            try {
-                Files.move(mainOldSource.toPath(), mainSource.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }*/
-
 
     public SaveTimer getSaveTimer() {
         return this.timer;
