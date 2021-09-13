@@ -96,7 +96,7 @@ public class SaveTimer extends AbstractTimer {
             if (name != null) {
                 List<LogEntry> l = this.log.get(name);
                 if (l == null) {
-                    l = new ArrayList<LogEntry>();
+                    l = new ArrayList<>();
                     this.log.put(name, l);
                 }
                 l.add(msg);
