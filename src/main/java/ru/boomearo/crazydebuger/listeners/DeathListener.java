@@ -13,14 +13,15 @@ public class DeathListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeathEvent(PlayerDeathEvent e) {
-        if (e.getEntity().hasMetadata("NPC")) {
+        Player pl = e.getEntity();
+        if (pl.hasMetadata("NPC")) {
             return;
         }
         StringBuilder d = new StringBuilder();
         for (ItemStack is : e.getDrops()) {
             d.append(CrazyDebuger.getNormalizedItemName(is)).append(" ");
         }
-        Player killer = e.getEntity().getKiller();
-        CrazyDebuger.sendLogMessage(e.getEntity(), "Погиб(" + d + ")." + (killer != null ? " Убил: " + killer.getName() : ""), true);
+        Player killer = pl.getKiller();
+        CrazyDebuger.sendLogMessage(pl, "Погиб(" + d + ")." + (killer != null ? " Убил: " + killer.getName() : ""), true);
     }
 }

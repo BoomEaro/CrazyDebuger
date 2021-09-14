@@ -71,7 +71,7 @@ public class MainListener implements Listener {
         CrazyDebuger.sendLogMessage(e.getPlayer(), "Создал табличку: '" + e.getLine(0) + "' '" + e.getLine(1) + "' '" + e.getLine(2) + "' '" + e.getLine(3) + "'", true);
     }
     
-    
+    //TODO я хз, нужно ли проверять наковальню, ибо там может быть срач из логов
 	/*@EventHandler(priority = EventPriority.MONITOR)
 	public void onPrepareAnvilEvent(PrepareAnvilEvent e) {
 		if (e.getResult() == null) {

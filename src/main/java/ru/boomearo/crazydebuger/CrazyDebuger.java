@@ -22,7 +22,7 @@ import ru.boomearo.crazydebuger.objects.IVault;
 import ru.boomearo.crazydebuger.objects.logger.LogEntry;
 import ru.boomearo.crazydebuger.objects.logger.LogLevel;
 import ru.boomearo.crazydebuger.runnable.SaveTimer;
-import ru.boomearo.crazydebuger.utils.Ziping;
+import ru.boomearo.crazydebuger.utils.Zipping;
 import ru.boomearo.crazydebuger.utils.NumberUtils;
 
 public class CrazyDebuger extends JavaPlugin {
@@ -34,8 +34,6 @@ public class CrazyDebuger extends JavaPlugin {
     private volatile boolean moneyEnabled = true;
     private volatile boolean deathEnabled = true;
     private volatile boolean itemEnabled = false;
-
-    private volatile boolean ready = false;
 
     private volatile long lastZip = 0;
 
@@ -58,7 +56,8 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadVault();
 
-        Thread thread = new Thread(this::checkOutdateFiles);
+        //Запускаем при включении плагина одноразовый поток для проверки и архивирования логов
+        Thread thread = new Thread(this::checkOutdatedFiles);
 
         thread.setName("CheckOutdatedFiles-Thread");
         thread.setPriority(3);
@@ -174,8 +173,9 @@ public class CrazyDebuger extends JavaPlugin {
                 (isAction ? "== " + ChatColor.stripColor(info.replace("\n", " ")) + " ==" : ChatColor.stripColor(info.replace("\n", " ")));
     }
 
-    public void checkOutdateFiles() {
-        this.ready = false;
+    //Именно здесь после успешных проверок таймер будет считаться готовым и будет сохранять на диск логи
+    public void checkOutdatedFiles() {
+        this.timer.setReady(false);
 
         long time = ((System.currentTimeMillis() - this.lastZip) / 1000);
 
@@ -195,8 +195,8 @@ public class CrazyDebuger extends JavaPlugin {
         double playerDirSize = getDirectorySizeMegaBytes(plSource);
         this.getLogger().info("Размер директории игроков: " + df.format(playerDirSize) + " MB.");
 
-        //Если прошел месяц то запускаем
-        //Если размер директории или главного лога привышает 150 мб, то запускаем архивирование все равно.
+        //Если прошел месяц, то запускаем
+        //Если размер директории или главного лога превышает 150 мб, то запускаем архивирование все равно.
         if (time > zipTime || mainLogSize > 150 || playerDirSize > 150) {
 
             try {
@@ -206,12 +206,12 @@ public class CrazyDebuger extends JavaPlugin {
                 e.printStackTrace();
             }
             finally {
-                this.ready = true;
+                this.timer.setReady(true);
             }
             return;
         }
 
-        this.ready = true;
+        this.timer.setReady(true);
     }
 
     private void runArchive(File mainSource, File plSource) {
@@ -235,7 +235,7 @@ public class CrazyDebuger extends JavaPlugin {
 
         if (files != null) {
             try {
-                Ziping.zipDir(plSource, plNew, false);
+                Zipping.zipDir(plSource, plNew, false);
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -254,7 +254,7 @@ public class CrazyDebuger extends JavaPlugin {
         mainNew.getParentFile().mkdirs();
 
         if (mainSource.exists()) {
-            Ziping.zipFile(mainSource, mainNew);
+            Zipping.zipFile(mainSource, mainNew);
 
             mainSource.delete();
         }
@@ -262,7 +262,7 @@ public class CrazyDebuger extends JavaPlugin {
         this.getLogger().info("Архивирование главного лога завершено.");
         long end = System.currentTimeMillis();
 
-        this.getLogger().info("Полное архивированое логов успешно завершено за " + (end - start) + "мс.");
+        this.getLogger().info("Полное архивирование логов успешно завершено за " + (end - start) + "мс.");
     }
 
     private static double getDirectorySizeMegaBytes(File dir) {
@@ -285,10 +285,6 @@ public class CrazyDebuger extends JavaPlugin {
 
     public SaveTimer getSaveTimer() {
         return this.timer;
-    }
-
-    public boolean isReady() {
-        return this.ready;
     }
 
     @SuppressWarnings("deprecation")
