@@ -56,19 +56,18 @@ public class CrazyDebuger extends JavaPlugin {
 
         loadVault();
 
+        if (this.timer == null) {
+            this.timer = new SaveTimer();
+            this.timer.setPriority(3);
+            this.timer.start();
+        }
+
         //Запускаем при включении плагина одноразовый поток для проверки и архивирования логов
         Thread thread = new Thread(this::checkOutdatedFiles);
 
         thread.setName("CheckOutdatedFiles-Thread");
         thread.setPriority(3);
         thread.start();
-
-
-        if (this.timer == null) {
-            this.timer = new SaveTimer();
-            this.timer.setPriority(3);
-            this.timer.start();
-        }
 
         getServer().getPluginManager().registerEvents(new MainListener(), this);
 
