@@ -1,20 +1,21 @@
 package ru.boomearo.crazydebuger.listeners;
 
-import org.bukkit.Location;
+import lombok.Value;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemDespawnEvent;
-import org.bukkit.inventory.ItemStack;
 
-import ru.boomearo.crazydebuger.CrazyDebuger;
-import ru.boomearo.crazydebuger.objects.logger.LogEntry;
+import ru.boomearo.crazydebuger.managers.LoggerManager;
 import ru.boomearo.crazydebuger.objects.logger.LogLevel;
+import ru.boomearo.crazydebuger.objects.logger.LogMessage;
 
+@Value
 public class ItemListener implements Listener {
+
+    LoggerManager loggerManager;
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onItemDespawnEvent(ItemDespawnEvent e) {
@@ -22,14 +23,17 @@ public class ItemListener implements Listener {
             return;
         }
 
-        Item en = e.getEntity();
-        ItemStack item = en.getItemStack();
+        if (!this.loggerManager.isItemEnabled()) {
+            return;
+        }
 
-        Location loc = en.getLocation();
-
-        //String ip, String money, double x, double y, double z, String world, String entity, String info, boolean isAction
-        CrazyDebuger.getInstance().getSaveTimer().addLog(null, new LogEntry(System.currentTimeMillis(), LogLevel.WARNING, CrazyDebuger.craftMsgLog(null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item), "Деспавн.", true)));
-
+        this.loggerManager.sendLogMessage(LogMessage.builder()
+                .entity(e.getEntity())
+                .textAction("Деспавн")
+                .logLevel(LogLevel.WARNING)
+                .action(true)
+                .build()
+        );
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -38,15 +42,18 @@ public class ItemListener implements Listener {
             return;
         }
 
-        Item en = e.getItem();
-        ItemStack item = en.getItemStack();
-
-        Location loc = en.getLocation();
+        if (!this.loggerManager.isItemEnabled()) {
+            return;
+        }
 
         Entity ee = e.getEntity();
 
-        CrazyDebuger.getInstance().getSaveTimer().addLog(null, new LogEntry(System.currentTimeMillis(), LogLevel.WARNING, CrazyDebuger.craftMsgLog(null, null, loc.getX(), loc.getY(), loc.getZ(), en.getWorld().getName(), CrazyDebuger.getNormalizedItemName(item), "Подобран сущностью " + ee.getType().name() + " (" + ee.getName() + ")", true)));
-
+        this.loggerManager.sendLogMessage(LogMessage.builder()
+                .entity(ee)
+                .textAction("Подобран сущностью " + ee.getType().name() + " (" + ee.getName() + ")")
+                .logLevel(LogLevel.WARNING)
+                .action(true)
+                .build()
+        );
     }
-
 }

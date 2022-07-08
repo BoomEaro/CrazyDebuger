@@ -14,9 +14,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Getter;
+import lombok.Setter;
 import ru.boomearo.crazydebuger.CrazyDebuger;
 import ru.boomearo.crazydebuger.objects.logger.LogEntry;
 
+@Setter
+@Getter
 public class SaveTimer extends AbstractTimer {
 
     private final Map<String, List<LogEntry>> log = new HashMap<>();
@@ -36,14 +40,6 @@ public class SaveTimer extends AbstractTimer {
     @Override
     public void task() {
         save();
-    }
-
-    public boolean isReady() {
-        return this.ready;
-    }
-
-    public void setReady(boolean ready) {
-        this.ready = ready;
     }
 
     public void save() {

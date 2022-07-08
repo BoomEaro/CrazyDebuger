@@ -1,18 +1,15 @@
 package ru.boomearo.crazydebuger.objects.logger;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum LogLevel {
 
     INFO("Информация"),
     WARNING("Предупреждение"),
     SEVERE("Ошибка");
 
-    private final String desc;
-
-    LogLevel(String desc) {
-        this.desc = desc;
-    }
-
-    public String getDescription() {
-        return this.desc;
-    }
+    private final String description;
 }
