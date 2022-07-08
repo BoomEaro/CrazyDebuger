@@ -97,6 +97,12 @@ public class LoggerManager {
         this.itemEnabled = configuration.getBoolean("Configuration.itemEnabled");
 
         this.lastZip = configuration.getLong("LastZip");
+
+        if (this.lastZip <= 0) {
+            this.lastZip = System.currentTimeMillis();
+
+            saveLastZip();
+        }
     }
 
     private void loadSaveTimer() {
@@ -121,6 +127,11 @@ public class LoggerManager {
 
             this.saveTimer = null;
         }
+    }
+
+    private void saveLastZip() {
+        CrazyDebuger.getInstance().getConfig().set("LastZip", this.lastZip);
+        CrazyDebuger.getInstance().saveConfig();
     }
 
     public void sendLogMessage(LogMessage message) {
@@ -266,10 +277,9 @@ public class LoggerManager {
 
         long start = System.currentTimeMillis();
 
-        CrazyDebuger.getInstance().getConfig().set("LastZip", start);
         this.lastZip = start;
 
-        CrazyDebuger.getInstance().saveConfig();
+        saveLastZip();
 
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat jdf = new SimpleDateFormat("HH-mm-ss   dd.MM.yyyy");
