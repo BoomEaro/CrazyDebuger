@@ -158,7 +158,7 @@ public class LoggerManager {
                 if (money != null) {
                     sb.append(" (");
 
-                    sb.append(df.format(money));
+                    sb.append(money);
 
                     sb.append(") ");
                 }
