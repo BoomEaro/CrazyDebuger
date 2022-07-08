@@ -46,11 +46,11 @@ public class ItemListener implements Listener {
             return;
         }
 
-        Entity ee = e.getEntity();
+        Entity entity = e.getEntity();
 
         this.loggerManager.sendLogMessage(LogMessage.builder()
-                .entity(ee)
-                .textAction("Подобран сущностью " + ee.getType().name() + " (" + ee.getName() + ")")
+                .entity(e.getItem())
+                .textAction("Подобран сущностью " + entity.getType().name() + " (" + entity.getName() + ")")
                 .logLevel(LogLevel.WARNING)
                 .action(true)
                 .build()

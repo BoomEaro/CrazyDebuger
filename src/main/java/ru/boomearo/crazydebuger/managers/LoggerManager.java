@@ -182,7 +182,7 @@ public class LoggerManager {
 
                 sb.append(getNormalizedItemName(item.getItemStack()));
 
-                sb.append(")");
+                sb.append(") ");
             }
 
             sb.append("(");
