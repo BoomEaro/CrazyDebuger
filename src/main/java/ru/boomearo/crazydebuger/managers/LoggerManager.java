@@ -47,8 +47,8 @@ public class LoggerManager {
     public void load(Configuration configuration) {
         loadConfig(configuration);
         loadVault();
-        loadCheckOutdatedThread();
         loadSaveTimer();
+        loadCheckOutdatedThread();
     }
 
     private void loadCheckOutdatedThread() {
